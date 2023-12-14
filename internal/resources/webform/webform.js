@@ -2,6 +2,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
 
     var descriptionsShown = false;
     var requestForm = $("#grpc-request-form");
+    document.title = $(".target").text();
 
     function formServiceSelected(callback) {
         var svcName = $("#grpc-service").val();
@@ -1418,7 +1419,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         inp.attr('rows', 1);
         inp.text(value);
         if (disabled) {
-            inp.prop('disabled', true);
+            inp.prop('readonly', true);
         }
         container.append(inp);
 
@@ -2000,7 +2001,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
     function getInitialMessageValue(messageType) {
         switch (messageType) {
             case "google.protobuf.Timestamp":
-                return "1970-01-01T00:00:00Z";
+                return (new Date(Date.now())).toISOString();
             case "google.protobuf.Duration":
                 return "0s";
             case "google.protobuf.Int32Value":
@@ -2139,6 +2140,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
 
     jsonRawTextArea.focus(function() {
         setValidation(this, validateJSON);
+        updateJSONRequest(requestForm.data("request"));
     });
 
     var MAX_INT64 = "9223372036854775807";
