@@ -46,7 +46,7 @@ import (
 	"github.com/fullstorydev/grpcui/standalone"
 )
 
-var version = "dev build <no version set>"
+var version = "1.0.1-sdev-nightly"
 
 var (
 	exit = os.Exit
