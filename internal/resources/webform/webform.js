@@ -110,7 +110,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
      *  * setValue(val): Sets the input's current value and, if it has changed,
      *    notifies ancestors of the change by calling onChange.
      *
-     * Sync'ing
+     * Syncing
      *
      * There are three representations of the request to keep in sync: (1) the
      * raw JSON, (2) the request object, and (3) the form which contains a
@@ -2151,24 +2151,33 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         gRPCurlTextArea.html(`<div>grpcurl -plaintext${metadataStr} -d '${requestDataJson}' ${window.target} ${service}.${method}</div>`);
     }
 
-    var jsonRawTextArea = $("#grpc-request-raw-text");
+    const jsonEditorTextArea = document.getElementById("grpc-request-textarea");
+    const jsonEditorOptions = {
+        mode: 'code',
+        onFocus: function () {
+            setValidation(this, validateJSON)
+        },
+        onBlur: function (json) {
+            try {
+                validateJSON();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+    };
+    const jsonEditor = new JSONEditor(jsonEditorTextArea, jsonEditorOptions);
     function updateJSONRequest(req) {
         let requestDataJson = JSON.stringify(req, null, 2);
-        jsonRawTextArea.val(requestDataJson);
+        jsonEditor.set(req);
         updateCurlCommand(requestDataJson);
     }
 
     function validateJSON() {
-        let requestDataJson = jsonRawTextArea.val();
+        let requestDataJson = JSON.stringify(jsonEditor.get(), null, 2);
         updateCurlCommand(requestDataJson);
         var reqObj = JSON.parse(requestDataJson);
         rebuildRequestForm(reqObj, false);
     }
-
-    jsonRawTextArea.focus(function() {
-        setValidation(this, validateJSON);
-        updateJSONRequest(requestForm.data("request"));
-    });
 
     var MAX_INT64 = "9223372036854775807";
     var MIN_INT64 = "-9223372036854775808";
@@ -2381,6 +2390,12 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         t.tabs("option", "active", 2);
     }
 
+    const jsonResponseEditorTextArea = document.getElementById("grpc-response-textarea");
+    const jsonResponseEditorOptions = {
+        mode:'code'
+    };
+    const jsonResponseEditor = new JSONEditor(jsonResponseEditorTextArea, jsonResponseEditorOptions);
+
     function renderMessages(enclosingDiv, messages) {
         enclosingDiv.empty();
         if (messages instanceof Array && messages.length > 0) {
@@ -2390,10 +2405,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
                 if (msg.isError) {
                     container.html('<div class="error">Server error processing message #' + (i+1) + '</div>');
                 } else {
-                    const textArea = $('<textarea>');
-                    textArea.val(JSON.stringify(msg.message, null, 2));
-                    textArea.addClass('grpc-response-textarea');
-                    container.append(textArea);
+                    jsonResponseEditor.set(msg.message);
                 }
                 enclosingDiv.append(container);
             }
