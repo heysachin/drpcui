@@ -46,11 +46,7 @@ import (
 	"github.com/fullstorydev/grpcui/standalone"
 )
 
-<<<<<<<< HEAD:cmd/drpcui/grpcui.go
 var version = "1.0.3"
-========
-var version = "1.0.2-sdev-nightly"
->>>>>>>> master:cmd/sdev-grpcui/grpcui.go
 
 var (
 	exit = os.Exit
