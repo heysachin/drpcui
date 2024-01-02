@@ -2,6 +2,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
 
     var descriptionsShown = false;
     var requestForm = $("#grpc-request-form");
+    document.title = $(".target").text();
 
     function formServiceSelected(callback) {
         var svcName = $("#grpc-service").val();
@@ -109,7 +110,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
      *  * setValue(val): Sets the input's current value and, if it has changed,
      *    notifies ancestors of the change by calling onChange.
      *
-     * Sync'ing
+     * Syncing
      *
      * There are three representations of the request to keep in sync: (1) the
      * raw JSON, (2) the request object, and (3) the form which contains a
@@ -314,7 +315,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
     //
     // This function does not handle oneofs. Those are only valid as direct
     // children of a message, and thus addMessageToForm handles them.
-    function addElementToForm(schema, container, parent, pathLen, value, allowMissing, fld) {
+    function addElementToForm(schema, container, parent, pathLen, value, allowMissing, fld, checkbox = undefined) {
         if (fld.isMap) {
             return addMapToForm(schema, container, parent, pathLen, value, allowMissing, fld);
         }
@@ -359,16 +360,16 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
 
         switch (fld.type) {
             case "int32": case "sint32": case "sfixed32": case "google.protobuf.Int32Value":
-            return addIntToForm(container, parent, value, fld, MIN_INT32, MAX_INT32);
+            return addIntToForm(container, parent, value, fld, MIN_INT32, MAX_INT32, checkbox);
 
             case "uint32": case "fixed32": case "google.protobuf.UInt32Value":
-            return addIntToForm(container, parent, value, fld, 0, MAX_UINT32);
+            return addIntToForm(container, parent, value, fld, 0, MAX_UINT32, checkbox);
 
             case "int64": case "sint64": case "sfixed64": case "google.protobuf.Int64Value":
-            return addStringIntToForm(container, parent, value, fld, MIN_INT64, MAX_INT64);
+            return addStringIntToForm(container, parent, value, fld, MIN_INT64, MAX_INT64, checkbox);
 
             case "uint64": case "fixed64": case "google.protobuf.UInt64Value":
-            return addStringIntToForm(container, parent, value, fld, "0", MAX_UINT64);
+            return addStringIntToForm(container, parent, value, fld, "0", MAX_UINT64, checkbox);
 
             case "double": case "float": case "google.protobuf.DoubleValue": case "google.protobuf.FloatValue":
             // TODO(jh): should 32-bit floats get extra range checks
@@ -377,7 +378,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
             return addDoubleToForm(container, parent, value, fld);
 
             case "string": case "google.protobuf.StringValue":
-            return addStringToForm(container, parent, value, fld);
+            return addStringToForm(container, parent, value, fld, checkbox);
 
             case "bytes": case "google.protobuf.BytesValue":
             return addBytesToForm(container, parent, value, fld);
@@ -737,7 +738,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
                 if (!currField.isRequired && currField.isMessage) {
                     child = addOptionalMessage(schema, cell, input, pathLen+1, fldVal, allowMissing, currField);
                 } else {
-                    child = addElementToForm(schema, cell, input, pathLen+1, fldVal, allowMissing, currField);
+                    child = addElementToForm(schema, cell, input, pathLen+1, fldVal, allowMissing, currField, checkbox);
                 }
                 child.fld = currField;
                 children[currField.name] = child;
@@ -758,7 +759,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
                             if (fld.isMessage) {
                                 child = addOptionalMessage(schema, cell, input, pathLen+1, fldVal, true, fld);
                             } else {
-                                child = addElementToForm(schema, cell, input, pathLen+1, fldVal, true, fld);
+                                child = addElementToForm(schema, cell, input, pathLen+1, fldVal, true, fld, checkbox);
                             }
                             child.fld = fld;
                             for (var i in children) {
@@ -1127,7 +1128,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         return input;
     }
 
-    function addIntToForm(container, parent, value, fld, min, max) {
+    function addIntToForm(container, parent, value, fld, min, max, checkbox) {
         var disabled = false;
         if (isUnset(value)) {
             value = fld.defaultVal;
@@ -1152,7 +1153,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         inp.attr('size', 28);
         inp.attr('value', "" + value);
         if (disabled) {
-            inp.prop('disabled', true);
+            inp.prop('readonly', true);
         }
         container.append(inp);
 
@@ -1173,6 +1174,15 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
                 input.setValue(num);
             });
         });
+
+        (function(inp) {
+            inp.click(function() {
+                checkbox.prop('checked', true);
+                inp.prop('readonly', false);
+                var num = + $(inp).val();
+                input.setValue(num);
+            });
+        })(inp);
         return input;
     }
 
@@ -1184,7 +1194,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         return (num % 1) === 0;
     }
 
-    function addStringIntToForm(container, parent, value, fld, min, max) {
+    function addStringIntToForm(container, parent, value, fld, min, max, checkbox) {
         var disabled = false;
         if (isUnset(value)) {
             value = fld.defaultVal;
@@ -1214,7 +1224,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         inp.attr('size', 28);
         inp.attr('value', "" + value);
         if (disabled) {
-            inp.prop('disabled', true);
+            inp.prop('readonly', true);
         }
         container.append(inp);
 
@@ -1235,6 +1245,15 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
                 input.setValue(val);
             });
         });
+
+        (function(inp) {
+            inp.click(function() {
+                checkbox.prop('checked', true);
+                inp.prop('readonly', false);
+                var num = $(inp).val();
+                input.setValue(num);
+            });
+        })(inp);
         return input;
     }
 
@@ -1403,7 +1422,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         return input;
     }
 
-    function addStringToForm(container, parent, value, fld) {
+    function addStringToForm(container, parent, value, fld, checkbox) {
         var disabled = false;
         if (isUnset(value)) {
             value = fld.defaultVal;
@@ -1418,7 +1437,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         inp.attr('rows', 1);
         inp.text(value);
         if (disabled) {
-            inp.prop('disabled', true);
+            inp.prop('readonly', true);
         }
         container.append(inp);
 
@@ -1430,6 +1449,15 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
                 input.setValue(str);
             });
         });
+
+        (function(inp) {
+            inp.click(function() {
+                checkbox.prop('checked', true);
+                inp.prop('readonly', false);
+                var str = $(inp).val();
+                input.setValue(str);
+            });
+        })(inp);
         return input;
     }
 
@@ -2000,7 +2028,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
     function getInitialMessageValue(messageType) {
         switch (messageType) {
             case "google.protobuf.Timestamp":
-                return "1970-01-01T00:00:00Z";
+                return (new Date()).toISOString();
             case "google.protobuf.Duration":
                 return "0s";
             case "google.protobuf.Int32Value":
@@ -2123,23 +2151,33 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         gRPCurlTextArea.html(`<div>grpcurl -plaintext${metadataStr} -d '${requestDataJson}' ${window.target} ${service}.${method}</div>`);
     }
 
-    var jsonRawTextArea = $("#grpc-request-raw-text");
+    const jsonEditorTextArea = document.getElementById("grpc-request-textarea");
+    const jsonEditorOptions = {
+        mode: 'code',
+        onFocus: function () {
+            setValidation(this, validateJSON)
+        },
+        onBlur: function (json) {
+            try {
+                validateJSON();
+            } catch (e) {
+                alert(e.message);
+            }
+        }
+    };
+    const jsonEditor = new JSONEditor(jsonEditorTextArea, jsonEditorOptions);
     function updateJSONRequest(req) {
         let requestDataJson = JSON.stringify(req, null, 2);
-        jsonRawTextArea.val(requestDataJson);
+        jsonEditor.set(req);
         updateCurlCommand(requestDataJson);
     }
 
     function validateJSON() {
-        let requestDataJson = jsonRawTextArea.val();
+        let requestDataJson = JSON.stringify(jsonEditor.get(), null, 2);
         updateCurlCommand(requestDataJson);
         var reqObj = JSON.parse(requestDataJson);
         rebuildRequestForm(reqObj, false);
     }
-
-    jsonRawTextArea.focus(function() {
-        setValidation(this, validateJSON);
-    });
 
     var MAX_INT64 = "9223372036854775807";
     var MIN_INT64 = "-9223372036854775808";
@@ -2352,6 +2390,12 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         t.tabs("option", "active", 2);
     }
 
+    const jsonResponseEditorTextArea = document.getElementById("grpc-response-textarea");
+    const jsonResponseEditorOptions = {
+        mode:'code'
+    };
+    const jsonResponseEditor = new JSONEditor(jsonResponseEditorTextArea, jsonResponseEditorOptions);
+
     function renderMessages(enclosingDiv, messages) {
         enclosingDiv.empty();
         if (messages instanceof Array && messages.length > 0) {
@@ -2361,10 +2405,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
                 if (msg.isError) {
                     container.html('<div class="error">Server error processing message #' + (i+1) + '</div>');
                 } else {
-                    const textArea = $('<textarea>');
-                    textArea.val(JSON.stringify(msg.message, null, 2));
-                    textArea.addClass('grpc-response-textarea');
-                    container.append(textArea);
+                    jsonResponseEditor.set(msg.message);
                 }
                 enclosingDiv.append(container);
             }
@@ -2779,7 +2820,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         } else if (item.request.timeout) {
             // older versions stored string in 'timeout' attribute; so support
             // that in case someone loads an item from history from older
-            // version of grpcui
+            // version of sdev-grpcui
             timeout = item.request.timeout;
         }
         $("#grpc-request-timeout input").val(timeout);

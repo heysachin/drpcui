@@ -72,7 +72,7 @@
       <div class="grpc-tabcontent" id="grpc-request-raw-tab">
         <div class="grpc-request-raw-container">
           <h3>Request payload</h3>
-          <textarea id="grpc-request-raw-text"></textarea><br/>
+          <div id="grpc-request-textarea" style="height: 400px;"></div><br/>
           <button class="grpc-invoke" disabled>Invoke</button>
         </div>
         <hr>
@@ -88,6 +88,7 @@
         <table class="grpc-metadata-table" id="grpc-response-headers"></table>
         <h3>Response Data</h3>
         <div id="grpc-response-req-stats"></div>
+        <div id="grpc-response-textarea" style="height: 400px;"></div><br/>
         <div class="grpc-response-messages" id="grpc-response-data"></div>
         <div id="grpc-response-error">
           <div id="grpc-response-error-summary">
