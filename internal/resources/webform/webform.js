@@ -31,6 +31,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         var service = $("#grpc-service").val();
         var method = $("#grpc-method").val();
         var fullMethod = service + "." + method;
+        $("#grpc-controller-description").text("/" + service + "/" + method + "$");
 
         var mtdDesc = mtdDescs[fullMethod];
         $("#grpc-method-description").text(mtdDesc);
@@ -2820,7 +2821,7 @@ window.initGRPCForm = function(services, svcDescs, mtdDescs, invokeURI, metadata
         } else if (item.request.timeout) {
             // older versions stored string in 'timeout' attribute; so support
             // that in case someone loads an item from history from older
-            // version of sdev-grpcui
+            // version of drpcui
             timeout = item.request.timeout;
         }
         $("#grpc-request-timeout input").val(timeout);

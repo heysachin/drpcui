@@ -55,6 +55,13 @@
     padding-top: 6px;
 }
 
+#grpc-controller-description {
+    font-weight: bold;
+    color: #333;
+    padding-top: 12px;
+    padding-bottom: 12px;
+}
+
 #grpc-method-description {
     font-weight: bold;
     color: #333;
