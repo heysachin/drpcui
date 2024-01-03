@@ -72,11 +72,6 @@ gRPC Web UI available at http://127.0.0.1:60551/...
 ```
 
 ### Updated Raw Request JSON
-The second tab lets you view the JSON representation of the request data you have defined on the
-first tab. You can also directly edit the JSON data -- including pasting in an entire JSON message.
-
-The JSON representation uses the standard [JSON mapping for Protocol Buffers](https://developers.google.com/protocol-buffers/docs/proto3#json).
-
 <p align="center">
   <img alt="web UI request JSON" width="600" src="doc-images/request-payload.png">
 </p>
@@ -85,7 +80,11 @@ When working with an RPC that has a streaming request, the JSON data will be a J
 each element is a single message in the stream.
 
 ### Updated Responses
-
 <p align="center">
-  <img alt="web UI response" width="500" src="doc-images/response-json.png">
+  <img alt="web UI response" width="600" src="doc-images/response-json.png">
+</p>
+
+### Updated Controller name in Description
+<p align="center">
+  <img alt="web UI response" width="1000" src="doc-images/locksmith-contoller-name.png">
 </p>
